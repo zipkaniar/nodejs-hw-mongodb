@@ -27,7 +27,7 @@ const contactSchema = new Schema(
     },
   },
   {
-    timestamps: true, // createdAt ve updatedAt otomatik olarak eklenecek
+    timestamps: true,
   },
 );
 

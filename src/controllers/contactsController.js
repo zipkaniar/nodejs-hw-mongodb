@@ -1,6 +1,9 @@
 import { Contact } from '../db/models/Contact.js';
+import createError from 'http-errors';
+import mongoose from 'mongoose';
+import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 
-export const getAllContacts = async (req, res) => {
+const getAllContacts = async (req, res, next) => {
   try {
     const contacts = await Contact.find();
     res.status(200).json({
@@ -9,24 +12,21 @@ export const getAllContacts = async (req, res) => {
       data: contacts,
     });
   } catch (error) {
-    res.status(500).json({
-      status: 500,
-      message: 'Failed to get contacts.',
-      error: error.message,
-    });
+    next(error);
   }
 };
 
-export const getContactById = async (req, res) => {
+const getContactById = async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const contact = await Contact.findById(contactId);
 
+    if (!mongoose.Types.ObjectId.isValid(contactId)) {
+      return next(createError(400, `Invalid ID format: ${contactId}`));
+    }
+
+    const contact = await Contact.findById(contactId);
     if (!contact) {
-      return res.status(404).json({
-        status: 404,
-        message: `Contact with ID ${contactId} not found.`,
-      });
+      return next(createError(404, `Contact with ID ${contactId} not found.`));
     }
 
     res.status(200).json({
@@ -35,23 +35,21 @@ export const getContactById = async (req, res) => {
       data: contact,
     });
   } catch (error) {
-    res.status(500).json({
-      status: 500,
-      message: 'Failed to get contact by ID.',
-      error: error.message,
-    });
+    next(error);
   }
 };
 
-export const createContact = async (req, res) => {
+const createContact = async (req, res, next) => {
   try {
     const { name, phoneNumber, email, isFavourite, contactType } = req.body;
 
     if (!name || !phoneNumber || !contactType) {
-      return res.status(400).json({
-        status: 400,
-        message: 'Name, phoneNumber, and contactType are required fields.',
-      });
+      return next(
+        createError(
+          400,
+          'Name, phoneNumber, and contactType are required fields.',
+        ),
+      );
     }
 
     const newContact = await Contact.create({
@@ -65,50 +63,61 @@ export const createContact = async (req, res) => {
     res.status(201).json({
       status: 201,
       message: 'Successfully created a new contact!',
-      data: {
-        _id: newContact._id,
-        name: newContact.name,
-        phoneNumber: newContact.phoneNumber,
-        email: newContact.email,
-        isFavourite: newContact.isFavourite,
-        contactType: newContact.contactType,
-        createdAt: newContact.createdAt,
-        updatedAt: newContact.updatedAt,
-      },
+      data: newContact,
     });
   } catch (error) {
-    res.status(500).json({
-      status: 500,
-      message: 'Failed to create a new contact.',
-      error: error.message,
-    });
+    next(error);
   }
 };
 
-export const deleteContact = async (req, res) => {
+const updateContact = async (req, res, next) => {
   try {
     const { contactId } = req.params;
 
-    // Verilen ID'ye sahip iletişim bilgisini sil
-    const deletedContact = await Contact.findByIdAndDelete(contactId);
+    if (!mongoose.Types.ObjectId.isValid(contactId)) {
+      return next(createError(400, `Invalid ID format: ${contactId}`));
+    }
 
-    if (!deletedContact) {
-      return res.status(404).json({
-        status: 404,
-        message: `Contact with ID ${contactId} not found.`,
-      });
+    const updatedContact = await Contact.findByIdAndUpdate(
+      contactId,
+      req.body,
+      { new: true },
+    );
+
+    if (!updatedContact) {
+      return next(createError(404, `Contact with ID ${contactId} not found.`));
     }
 
     res.status(200).json({
       status: 200,
-      message: `Successfully deleted contact with ID ${contactId}!`,
-      data: deletedContact,
+      message: 'Successfully updated contact!',
+      data: updatedContact,
     });
   } catch (error) {
-    res.status(500).json({
-      status: 500,
-      message: 'Failed to delete contact.',
-      error: error.message,
-    });
+    next(error);
   }
+};
+
+const deleteContact = async (req, res) => {
+  const { contactId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(contactId)) {
+    throw createError(400, `Invalid ID format: ${contactId}`);
+  }
+
+  const deletedContact = await Contact.findByIdAndDelete(contactId);
+
+  if (!deletedContact) {
+    throw createError(404, `Contact with ID ${contactId} not found.`);
+  }
+
+  res.status(204).send();
+};
+
+export default {
+  getAllContacts: ctrlWrapper(getAllContacts),
+  getContactById: ctrlWrapper(getContactById),
+  createContact: ctrlWrapper(createContact),
+  updateContact: ctrlWrapper(updateContact),
+  deleteContact: ctrlWrapper(deleteContact),
 };
