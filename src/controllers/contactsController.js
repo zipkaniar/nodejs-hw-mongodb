@@ -5,11 +5,77 @@ import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 
 const getAllContacts = async (req, res, next) => {
   try {
-    const contacts = await Contact.find();
+    const {
+      page = 1,
+      perPage = 10,
+      sortBy = 'name',
+      sortOrder = 'asc',
+      isFavourite,
+      contactType,
+    } = req.query;
+
+    const pageNumber = parseInt(page, 10);
+    const perPageNumber = parseInt(perPage, 10);
+
+    if (pageNumber < 1 || perPageNumber < 1) {
+      return next(createError(400, 'Page and perPage must be greater than 0.'));
+    }
+
+    const validSortFields = ['name', 'email', 'phoneNumber', 'contactType'];
+    if (!validSortFields.includes(sortBy)) {
+      return next(
+        createError(
+          400,
+          `Invalid sortBy value. Use one of: ${validSortFields.join(', ')}`,
+        ),
+      );
+    }
+
+    const sortOptions = { asc: 1, desc: -1 };
+    const sortDirection = sortOptions[sortOrder] ?? 1; // Varsayılan olarak `asc`
+
+    const filter = {};
+    if (isFavourite !== undefined) {
+      if (isFavourite !== 'true' && isFavourite !== 'false') {
+        return next(createError(400, "isFavourite must be 'true' or 'false'."));
+      }
+      filter.isFavourite = isFavourite === 'true';
+    }
+
+    if (contactType) {
+      const validContactTypes = ['work', 'personal', 'other'];
+      if (!validContactTypes.includes(contactType)) {
+        return next(
+          createError(
+            400,
+            `Invalid contactType. Use one of: ${validContactTypes.join(', ')}`,
+          ),
+        );
+      }
+      filter.contactType = contactType;
+    }
+
+    const totalItems = await Contact.countDocuments(filter);
+
+    const contacts = await Contact.find(filter)
+      .sort({ [sortBy]: sortDirection }) // ✅ Sıralama burada uygulanıyor
+      .skip((pageNumber - 1) * perPageNumber)
+      .limit(perPageNumber);
+
+    const totalPages = Math.ceil(totalItems / perPageNumber);
+
     res.status(200).json({
       status: 200,
       message: 'Successfully found contacts!',
-      data: contacts,
+      data: {
+        data: contacts,
+        page: pageNumber,
+        perPage: perPageNumber,
+        totalItems,
+        totalPages,
+        hasPreviousPage: pageNumber > 1,
+        hasNextPage: pageNumber < totalPages,
+      },
     });
   } catch (error) {
     next(error);
@@ -81,7 +147,9 @@ const updateContact = async (req, res, next) => {
     const updatedContact = await Contact.findByIdAndUpdate(
       contactId,
       req.body,
-      { new: true },
+      {
+        new: true,
+      },
     );
 
     if (!updatedContact) {
