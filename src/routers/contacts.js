@@ -3,15 +3,22 @@ import { body } from 'express-validator';
 import contactsController from '../controllers/contactsController.js';
 import validateBody from '../middlewares/validateBody.js';
 import isValidId from '../middlewares/isValidId.js';
+import authenticate from '../middlewares/authenticate.js';
 
 const router = express.Router();
 
-router.get('/', contactsController.getAllContacts);
+router.get('/', authenticate, contactsController.getAllContacts);
 
-router.get('/:contactId', isValidId, contactsController.getContactById);
+router.get(
+  '/:contactId',
+  authenticate,
+  isValidId,
+  contactsController.getContactById,
+);
 
 router.post(
   '/',
+  authenticate,
   validateBody([
     body('name')
       .isString()
@@ -20,17 +27,18 @@ router.post(
     body('email').isEmail().withMessage('Geçerli bir email adresi girin.'),
     body('phoneNumber')
       .isMobilePhone()
-      .withMessage('Geçerli bir telefon numarası girin.'), // ✅ Güncellendi
+      .withMessage('Geçerli bir telefon numarası girin.'),
     body('contactType')
       .isString()
       .notEmpty()
-      .withMessage('İletişim türü zorunludur.'), // ✅ Güncellendi
+      .withMessage('İletişim türü zorunludur.'),
   ]),
   contactsController.createContact,
 );
 
 router.patch(
   '/:contactId',
+  authenticate,
   isValidId,
   validateBody([
     body('name')
@@ -42,7 +50,7 @@ router.patch(
       .optional()
       .isEmail()
       .withMessage('Geçerli bir email adresi girin.'),
-    body('phone')
+    body('phoneNumber') // ✅ "phone" yerine "phoneNumber" olmalı
       .optional()
       .isMobilePhone()
       .withMessage('Geçerli bir telefon numarası girin.'),
@@ -50,6 +58,11 @@ router.patch(
   contactsController.updateContact,
 );
 
-router.delete('/:contactId', isValidId, contactsController.deleteContact);
+router.delete(
+  '/:contactId',
+  authenticate,
+  isValidId,
+  contactsController.deleteContact,
+);
 
 export default router;

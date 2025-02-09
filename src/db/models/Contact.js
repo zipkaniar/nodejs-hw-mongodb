@@ -7,6 +7,8 @@ const contactSchema = new Schema(
     name: {
       type: String,
       required: true,
+      minlength: 3,
+      maxlength: 20,
     },
     phoneNumber: {
       type: String,
@@ -25,10 +27,15 @@ const contactSchema = new Schema(
       required: true,
       default: 'personal',
     },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
   },
   {
     timestamps: true,
   },
 );
 
-export const Contact = model('Contact', contactSchema);
+export default model('Contact', contactSchema);

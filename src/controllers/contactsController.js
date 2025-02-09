@@ -1,4 +1,4 @@
-import { Contact } from '../db/models/Contact.js';
+import Contact from '../db/models/Contact.js';
 import createError from 'http-errors';
 import mongoose from 'mongoose';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
@@ -34,7 +34,9 @@ const getAllContacts = async (req, res, next) => {
     const sortOptions = { asc: 1, desc: -1 };
     const sortDirection = sortOptions[sortOrder] ?? 1; // Varsayılan olarak `asc`
 
-    const filter = {};
+    // ✅ Kullanıcının sadece kendi contacts verilerini görebilmesi için userId filtresi ekleniyor
+    const filter = { userId: req.user._id };
+
     if (isFavourite !== undefined) {
       if (isFavourite !== 'true' && isFavourite !== 'false') {
         return next(createError(400, "isFavourite must be 'true' or 'false'."));
@@ -43,7 +45,7 @@ const getAllContacts = async (req, res, next) => {
     }
 
     if (contactType) {
-      const validContactTypes = ['work', 'personal', 'other'];
+      const validContactTypes = ['work', 'personal', 'home'];
       if (!validContactTypes.includes(contactType)) {
         return next(
           createError(
@@ -124,6 +126,7 @@ const createContact = async (req, res, next) => {
       email: email || null,
       isFavourite: isFavourite || false,
       contactType,
+      userId: req.user._id,
     });
 
     res.status(201).json({

@@ -5,6 +5,8 @@ import pinoHttp from 'pino-http';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { notFoundHandler } from './middlewares/notFoundHandler.js';
 import contactsRouter from './routers/contacts.js';
+import authRouter from './routers/auth.js';
+import cookieParser from 'cookie-parser';
 
 const logger = pino({ transport: { target: 'pino-pretty' } });
 
@@ -16,12 +18,13 @@ export function setupServer() {
     app.use(cors());
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
+    app.use(cookieParser());
     app.use(pinoHttp({ logger }));
 
     app.use('/contacts', contactsRouter);
+    app.use('/auth', authRouter);
 
     app.use(notFoundHandler);
-
     app.use(errorHandler);
 
     app.listen(PORT, () => {
@@ -29,6 +32,6 @@ export function setupServer() {
     });
   } catch (error) {
     logger.error(`Server failed to start: ${error.message}`);
-    process.exit(1); // Sunucu başarısız olursa çıkış yap
+    process.exit(1);
   }
 }
