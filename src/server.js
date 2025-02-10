@@ -26,6 +26,11 @@ export function setupServer() {
 
     app.use(notFoundHandler);
     app.use(errorHandler);
+    console.log(
+      app._router.stack.map((layer) =>
+        layer.route ? layer.route.path : layer.name,
+      ),
+    );
 
     app.listen(PORT, () => {
       logger.info(`Server is running on port ${PORT}`);
