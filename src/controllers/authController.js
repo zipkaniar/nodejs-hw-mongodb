@@ -1,5 +1,8 @@
 import createError from 'http-errors';
 import authService from '../services/authService.js';
+import { sendResetEmail } from '../services/emailService.js';
+import { User } from '../db/models/index.js';
+import jwt from 'jsonwebtoken';
 
 const registerUser = async (req, res, next) => {
   try {
@@ -37,7 +40,7 @@ const loginUser = async (req, res, next) => {
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 gün
+      maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
     res.status(200).json({
@@ -65,7 +68,7 @@ const refreshSession = async (req, res, next) => {
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 gün
+      maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
     res.status(200).json({
@@ -99,9 +102,60 @@ const logoutUser = async (req, res, next) => {
   }
 };
 
+const sendResetEmailController = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return next(createError(404, 'User not found!'));
+    }
+
+    const response = await sendResetEmail(email);
+
+    res.status(200).json(response);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const { JWT_SECRET } = process.env;
+
+const resetPassword = async (req, res, next) => {
+  try {
+    const { token, password } = req.body;
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, JWT_SECRET);
+    } catch (err) {
+      return next(createError(401, 'Token is expired or invalid.'));
+    }
+
+    const user = await User.findOne({ email: decoded.email });
+    if (!user) {
+      return next(createError(404, 'User not found!'));
+    }
+
+    await authService.updateUserPassword(user._id, password);
+
+    await authService.invalidateUserSessions(user._id);
+
+    res.status(200).json({
+      status: 200,
+      message: 'Password has been successfully reset.',
+      data: {},
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 export default {
   registerUser,
   loginUser,
   refreshSession,
   logoutUser,
+  sendResetEmailController,
+  resetPassword,
 };

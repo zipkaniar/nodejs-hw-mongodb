@@ -4,6 +4,7 @@ import contactsController from '../controllers/contactsController.js';
 import validateBody from '../middlewares/validateBody.js';
 import isValidId from '../middlewares/isValidId.js';
 import authenticate from '../middlewares/authenticate.js';
+import { upload } from '../middlewares/upload.js';
 
 const router = express.Router();
 
@@ -19,12 +20,16 @@ router.get(
 router.post(
   '/',
   authenticate,
+  upload.single('photo'),
   validateBody([
     body('name')
       .isString()
       .isLength({ min: 3, max: 20 })
       .withMessage('İsim en az 3, en fazla 20 karakter olmalıdır.'),
-    body('email').isEmail().withMessage('Geçerli bir email adresi girin.'),
+    body('email')
+      .optional()
+      .isEmail()
+      .withMessage('Geçerli bir email adresi girin.'),
     body('phoneNumber')
       .isMobilePhone()
       .withMessage('Geçerli bir telefon numarası girin.'),
@@ -50,10 +55,11 @@ router.patch(
       .optional()
       .isEmail()
       .withMessage('Geçerli bir email adresi girin.'),
-    body('phoneNumber') // ✅ "phone" yerine "phoneNumber" olmalı
+    body('phoneNumber')
       .optional()
       .isMobilePhone()
-      .withMessage('Geçerli bir telefon numarası girin.'),
+      .matches(/^\+?([0-9]{10,15})$/)
+      .withMessage('Geçerli bir telefon numarası girin. Örn: +905551234567'),
   ]),
   contactsController.updateContact,
 );

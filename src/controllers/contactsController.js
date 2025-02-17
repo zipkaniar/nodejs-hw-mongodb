@@ -2,6 +2,7 @@ import Contact from '../db/models/Contact.js';
 import createError from 'http-errors';
 import mongoose from 'mongoose';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
+import { uploadImage } from '../services/cloudinaryService.js';
 
 const getAllContacts = async (req, res, next) => {
   try {
@@ -32,9 +33,8 @@ const getAllContacts = async (req, res, next) => {
     }
 
     const sortOptions = { asc: 1, desc: -1 };
-    const sortDirection = sortOptions[sortOrder] ?? 1; // Varsayılan olarak `asc`
+    const sortDirection = sortOptions[sortOrder] ?? 1;
 
-    // ✅ Kullanıcının sadece kendi contacts verilerini görebilmesi için userId filtresi ekleniyor
     const filter = { userId: req.user._id };
 
     if (isFavourite !== undefined) {
@@ -58,9 +58,8 @@ const getAllContacts = async (req, res, next) => {
     }
 
     const totalItems = await Contact.countDocuments(filter);
-
     const contacts = await Contact.find(filter)
-      .sort({ [sortBy]: sortDirection }) // ✅ Sıralama burada uygulanıyor
+      .sort({ [sortBy]: sortDirection })
       .skip((pageNumber - 1) * perPageNumber)
       .limit(perPageNumber);
 
@@ -120,6 +119,11 @@ const createContact = async (req, res, next) => {
       );
     }
 
+    let imageUrl = null;
+    if (req.file) {
+      imageUrl = await uploadImage(req.file.path);
+    }
+
     const newContact = await Contact.create({
       name,
       phoneNumber,
@@ -127,6 +131,7 @@ const createContact = async (req, res, next) => {
       isFavourite: isFavourite || false,
       contactType,
       userId: req.user._id,
+      photo: imageUrl,
     });
 
     res.status(201).json({

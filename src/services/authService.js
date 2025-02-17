@@ -52,8 +52,8 @@ const loginUser = async ({ email, password }) => {
     userId: user._id,
     accessToken,
     refreshToken,
-    accessTokenValidUntil: new Date(Date.now() + 15 * 60 * 1000), // 15 dakika
-    refreshTokenValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 gün
+    accessTokenValidUntil: new Date(Date.now() + 15 * 60 * 1000),
+    refreshTokenValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
   });
 
   return { accessToken, refreshToken };
@@ -94,8 +94,8 @@ const refreshSession = async (refreshToken) => {
     userId: user._id,
     accessToken: newAccessToken,
     refreshToken: newRefreshToken,
-    accessTokenValidUntil: new Date(Date.now() + 15 * 60 * 1000), // 15 dakika
-    refreshTokenValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 gün
+    accessTokenValidUntil: new Date(Date.now() + 15 * 60 * 1000),
+    refreshTokenValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
   });
 
   return { accessToken: newAccessToken, newRefreshToken };
@@ -105,9 +105,20 @@ const logoutUser = async (refreshToken) => {
   await Session.deleteOne({ refreshToken });
 };
 
+const updateUserPassword = async (userId, newPassword) => {
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  await User.findByIdAndUpdate(userId, { password: hashedPassword });
+};
+
+const invalidateUserSessions = async (userId) => {
+  await Session.deleteMany({ userId });
+};
+
 export default {
   registerUser,
   loginUser,
   refreshSession,
   logoutUser,
+  updateUserPassword,
+  invalidateUserSessions,
 };

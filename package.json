@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.5.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
@@ -28,6 +29,8 @@
     "mongodb": "^6.12.0",
     "mongoose": "^8.9.5",
     "moongose": "^1.0.0",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.10.0",
     "pino": "^9.6.0",
     "pino-http": "^10.4.0",
     "pino-pretty": "^13.0.0"
