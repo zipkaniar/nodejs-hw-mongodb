@@ -1,0 +1,111 @@
+openapi: 3.0.0
+info:
+  title: Contact API
+  description: Node.js ile oluşturulan API için Swagger dokümantasyonu
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+paths:
+  /contacts:
+    get:
+      summary: Tüm iletişimleri getir
+      description: Kullanıcının tüm kayıtlı iletişimlerini getirir.
+      responses:
+        '200':
+          description: Başarılı yanıt
+        '401':
+          description: Yetkilendirme hatası
+    post:
+      summary: Yeni iletişim ekle
+      description: Yeni bir iletişim ekler.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: 'Ali Veli'
+                phoneNumber:
+                  type: string
+                  example: '+905555555555'
+                email:
+                  type: string
+                  example: 'ali@example.com'
+                contactType:
+                  type: string
+                  example: 'work'
+      responses:
+        '201':
+          description: İletişim başarıyla oluşturuldu
+        '400':
+          description: Eksik veya hatalı parametre
+        '401':
+          description: Yetkilendirme hatası
+  /contacts/{id}:
+    get:
+      summary: Belirli bir iletişimi getir
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Getirilecek iletişimin ID'si
+          schema:
+            type: string
+            example: '65b2c1a3f9e4b8209c5e14a2'
+      responses:
+        '200':
+          description: İletişim başarıyla getirildi
+        '400':
+          description: Geçersiz ID formatı
+        '404':
+          description: İletişim bulunamadı
+    patch:
+      summary: Belirli bir iletişimi güncelle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Güncellenecek iletişimin ID'si
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                phoneNumber:
+                  type: string
+                email:
+                  type: string
+                isFavourite:
+                  type: boolean
+      responses:
+        '200':
+          description: İletişim başarıyla güncellendi
+        '400':
+          description: Geçersiz giriş verisi
+        '404':
+          description: İletişim bulunamadı
+    delete:
+      summary: Belirli bir iletişimi sil
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Silinecek iletişimin ID'si
+          schema:
+            type: string
+      responses:
+        '204':
+          description: İletişim başarıyla silindi
+        '400':
+          description: Geçersiz ID formatı
+        '404':
+          description: İletişim bulunamadı

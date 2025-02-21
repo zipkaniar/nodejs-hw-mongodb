@@ -1,0 +1,22 @@
+openapi: 3.1.0
+info:
+  version: 1.0.0
+  title: Contacts API
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  description: >-
+    Contacts API, kullanıcıların iletişim bilgilerini yönetmesini sağlar.
+tags:
+  - name: Contacts
+    description: İletişim bilgileri yönetimi
+servers:
+  - url: http://localhost:3000
+  - url: https://your-deployment-url.com
+paths:
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer

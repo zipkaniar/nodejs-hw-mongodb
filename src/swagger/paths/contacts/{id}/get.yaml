@@ -1,0 +1,25 @@
+get:
+  tags:
+    - Contacts
+  summary: Belirli bir iletişimi getir
+  operationId: getContactById
+  description: Belirtilen ID'ye sahip iletişimi getirir.
+  security:
+    - bearerAuth: []
+  parameters:
+    - name: id
+      in: path
+      required: true
+      description: Getirilecek iletişimin ID'si
+      schema:
+        type: string
+        example: '65b2c1a3f9e4b8209c5e14a2'
+  responses:
+    '200':
+      description: İletişim başarıyla getirildi
+    '400':
+      description: Geçersiz ID formatı
+    '404':
+      description: İletişim bulunamadı
+    '401':
+      description: Yetkilendirme hatası

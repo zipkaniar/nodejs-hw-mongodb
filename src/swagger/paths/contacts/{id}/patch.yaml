@@ -1,0 +1,44 @@
+patch:
+  tags:
+    - Contacts
+  summary: Belirli bir iletişimi güncelle
+  operationId: updateContact
+  description: Belirtilen ID'ye sahip iletişimi günceller.
+  security:
+    - bearerAuth: []
+  parameters:
+    - name: id
+      in: path
+      required: true
+      description: Güncellenecek iletişimin ID'si
+      schema:
+        type: string
+        example: '65b2c1a3f9e4b8209c5e14a2'
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+              example: 'Ali Veli'
+            phoneNumber:
+              type: string
+              example: '+905555555555'
+            email:
+              type: string
+              example: 'ali@example.com'
+            isFavourite:
+              type: boolean
+              example: true
+  responses:
+    '200':
+      description: İletişim başarıyla güncellendi
+    '400':
+      description: Geçersiz giriş verisi
+    '404':
+      description: İletişim bulunamadı
+    '401':
+      description: Yetkilendirme hatası

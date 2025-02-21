@@ -1,0 +1,25 @@
+delete:
+  tags:
+    - Contacts
+  summary: Belirli bir iletişimi sil
+  operationId: deleteContact
+  description: Belirtilen ID'ye sahip iletişimi siler.
+  security:
+    - bearerAuth: []
+  parameters:
+    - name: id
+      in: path
+      required: true
+      description: Silinecek iletişimin ID'si
+      schema:
+        type: string
+        example: '65b2c1a3f9e4b8209c5e14a2'
+  responses:
+    '204':
+      description: İletişim başarıyla silindi
+    '400':
+      description: Geçersiz ID formatı
+    '404':
+      description: İletişim bulunamadı
+    '401':
+      description: Yetkilendirme hatası

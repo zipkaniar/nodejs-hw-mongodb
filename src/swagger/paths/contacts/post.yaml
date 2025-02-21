@@ -1,0 +1,38 @@
+post:
+  tags:
+    - Contacts
+  summary: Yeni iletişim ekle
+  operationId: createContact
+  description: Yeni bir iletişim ekler.
+  security:
+    - bearerAuth: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - name
+            - phoneNumber
+            - contactType
+          properties:
+            name:
+              type: string
+              example: 'Ali Veli'
+            phoneNumber:
+              type: string
+              example: '+905555555555'
+            email:
+              type: string
+              example: 'ali@example.com'
+            contactType:
+              type: string
+              example: 'work'
+  responses:
+    '201':
+      description: İletişim başarıyla oluşturuldu
+    '400':
+      description: Eksik veya hatalı parametre
+    '401':
+      description: Yetkilendirme hatası
